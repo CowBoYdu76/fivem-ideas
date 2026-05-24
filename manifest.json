@@ -1,0 +1,22 @@
+{
+  "name": "FiveM Ideas Board",
+  "short_name": "FiveM Ideas",
+  "description": "Gestionnaire d'idées pour scripts FiveM",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080d0b",
+  "theme_color": "#0a0f0d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/0a0f0d/39ff84?text=⬡",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/0a0f0d/39ff84?text=⬡",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

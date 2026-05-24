@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0f0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FiveM Ideas" />
+  <title>FiveM Ideas Board</title>
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #080d0b;
+      --surface: #0d1a13;
+      --surface2: #111f17;
+      --border: #1c3828;
+      --green: #39ff84;
+      --green-dim: #1a5c38;
+      --green-glow: #39ff8433;
+      --text: #c8ebd8;
+      --text-dim: #4a7a5a;
+      --text-muted: #2a4a35;
+      --red: #ff5f5f;
+      --yellow: #ffe066;
+      --purple: #b39ddb;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); font-family: 'Exo 2', sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; z-index: 9999; }
+
+    /* HEADER */
+    #header { position: sticky; top: 0; z-index: 100; background: rgba(8,13,11,0.95); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: calc(var(--safe-top) + 12px) 16px 12px; }
+    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .logo { display: flex; align-items: center; gap: 8px; }
+    .logo-hex { font-size: 20px; color: var(--green); filter: drop-shadow(0 0 8px var(--green)); animation: pulse 2.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{filter:drop-shadow(0 0 6px var(--green))} 50%{filter:drop-shadow(0 0 16px var(--green))} }
+    .logo-text { font-family: 'Share Tech Mono', monospace; font-size: 15px; color: var(--green); letter-spacing: 2px; text-transform: uppercase; }
+    .logo-sub { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; font-family: 'Share Tech Mono', monospace; }
+    .header-btns { display: flex; gap: 8px; align-items: center; }
+    #btn-add { background: var(--green); color: #050f08; border: none; border-radius: 8px; padding: 10px 16px; font-family: 'Share Tech Mono', monospace; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 16px var(--green-glow); transition: all .2s; white-space: nowrap; }
+    #btn-add:active { transform: scale(0.96); }
+    #btn-sync { background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; font-size: 12px; cursor: pointer; transition: all .2s; white-space: nowrap; }
+    #btn-sync:hover { border-color: var(--green-dim); color: var(--green); }
+    #btn-sync.syncing { color: var(--yellow); border-color: var(--yellow); animation: blink .8s infinite; }
+    #btn-sync.ok { color: var(--green); border-color: var(--green); }
+    #btn-sync.err { color: var(--red); border-color: var(--red); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* SYNC STATUS */
+    #sync-bar { display: none; padding: 6px 16px; font-family: 'Share Tech Mono', monospace; font-size: 11px; border-bottom: 1px solid var(--border); }
+    #sync-bar.show { display: flex; align-items: center; gap: 8px; }
+    #sync-bar.ok { color: var(--green); background: rgba(57,255,132,0.05); }
+    #sync-bar.err { color: var(--red); background: rgba(255,95,95,0.05); }
+    #sync-bar.syncing { color: var(--yellow); background: rgba(255,224,102,0.05); }
+
+    #search { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 13px; outline: none; margin-bottom: 8px; transition: border-color .2s; }
+    #search:focus { border-color: var(--green-dim); }
+    #search::placeholder { color: var(--text-muted); }
+    .filter-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .chip { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; font-size: 11px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .chip.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+    /* STATS */
+    #stats { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); }
+    #stats::-webkit-scrollbar { display: none; }
+    .stat-pill { flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; text-align: center; }
+    .stat-pill .val { font-family: 'Share Tech Mono', monospace; font-size: 16px; font-weight: 700; color: var(--green); }
+    .stat-pill .lbl { font-size: 9px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+
+    /* CARDS */
+    #cards { padding: 14px 12px calc(var(--safe-bottom) + 80px); display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+    .card { background: var(--surface); border-radius: 12px; padding: 14px; border: 1px solid var(--border); transition: all .2s; animation: fadeIn .25s ease; position: relative; overflow: hidden; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--card-color, var(--green)), transparent); opacity: 0.6; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .card-head { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .card-title { flex: 1; font-size: 14px; font-weight: 700; color: #e8f5ee; line-height: 1.3; }
+    .status-badge { flex-shrink: 0; padding: 3px 10px; border-radius: 12px; font-family: 'Share Tech Mono', monospace; font-size: 10px; cursor: pointer; border: 1px solid currentColor; transition: all .15s; white-space: nowrap; }
+    .status-badge:active { transform: scale(0.93); }
+    .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 10px; }
+    .card-foot { display: flex; align-items: center; justify-content: space-between; }
+    .script-tag { background: rgba(57,255,132,0.08); border: 1px solid var(--green-dim); border-radius: 10px; padding: 2px 9px; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--green); }
+    .card-actions { display: flex; gap: 4px; align-items: center; }
+    .card-date { font-size: 10px; color: var(--text-muted); font-family: 'Share Tech Mono', monospace; margin-right: 4px; }
+    .icon-btn { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 4px 6px; border-radius: 6px; transition: all .15s; }
+    .icon-btn:hover { background: var(--surface2); }
+    .icon-btn.del { color: var(--red); }
+    #empty { text-align: center; padding: 60px 20px; color: var(--text-muted); font-family: 'Share Tech Mono', monospace; font-size: 13px; line-height: 2; display: none; grid-column: 1/-1; }
+
+    /* MODAL */
+    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+    #overlay.open { display: flex; }
+    #modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px 20px 0 0; padding: 20px 20px calc(var(--safe-bottom) + 20px); width: 100%; max-width: 600px; animation: slideUp .25s ease; max-height: 90vh; overflow-y: auto; }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+    .modal-title { font-family: 'Share Tech Mono', monospace; font-size: 13px; color: var(--green); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; font-family: 'Share Tech Mono', monospace; margin-bottom: 5px; }
+    .field input, .field select, .field textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 13px; outline: none; transition: border-color .2s; -webkit-appearance: none; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green-dim); }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field select option { background: var(--bg); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-cancel { flex: 1; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-dim); padding: 12px; font-family: 'Share Tech Mono', monospace; font-size: 13px; cursor: pointer; }
+    .btn-save { flex: 2; background: var(--green); border: none; border-radius: 8px; color: #050f08; padding: 12px; font-family: 'Share Tech Mono', monospace; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 16px var(--green-glow); }
+    .btn-save:active { transform: scale(0.97); }
+
+    /* SETUP MODAL */
+    #setup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+    #setup-overlay.open { display: flex; }
+    #setup-modal { background: var(--surface); border: 1px solid var(--green-dim); border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; box-shadow: 0 0 40px var(--green-glow); }
+    .setup-title { font-family: 'Share Tech Mono', monospace; font-size: 14px; color: var(--green); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .setup-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; }
+    .setup-desc a { color: var(--green); }
+    .setup-step { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 11px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; line-height: 1.6; }
+    .setup-step span { color: var(--green); }
+    .token-input-wrap { position: relative; margin-bottom: 16px; }
+    #token-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 13px; outline: none; letter-spacing: 1px; }
+    #token-input:focus { border-color: var(--green); }
+    #token-input::placeholder { color: var(--text-muted); letter-spacing: 0; }
+    .setup-actions { display: flex; gap: 10px; }
+    .btn-skip { flex: 1; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); padding: 12px; font-family: 'Share Tech Mono', monospace; font-size: 12px; cursor: pointer; }
+    .btn-connect { flex: 2; background: var(--green); border: none; border-radius: 8px; color: #050f08; padding: 12px; font-family: 'Share Tech Mono', monospace; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+    /* TOAST */
+    #toast { position: fixed; bottom: calc(var(--safe-bottom) + 20px); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface2); border: 1px solid var(--green-dim); color: var(--green); padding: 10px 20px; border-radius: 20px; font-family: 'Share Tech Mono', monospace; font-size: 12px; z-index: 400; transition: transform .3s ease; white-space: nowrap; box-shadow: 0 0 20px var(--green-glow); }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="header-top">
+    <div class="logo">
+      <span class="logo-hex">⬡</span>
+      <div>
+        <div class="logo-text">FiveM Ideas</div>
+        <div class="logo-sub" id="sync-label">local only</div>
+      </div>
+    </div>
+    <div class="header-btns">
+      <button id="btn-sync" onclick="openSetup()">⚙ Sync</button>
+      <button id="btn-add" onclick="openModal()">+ IDÉE</button>
+    </div>
+  </div>
+  <input id="search" type="search" placeholder="Rechercher..." oninput="render()" />
+  <div class="filter-row" id="filter-scripts"></div>
+</div>
+
+<!-- SYNC STATUS BAR -->
+<div id="sync-bar"></div>
+
+<!-- STATS -->
+<div id="stats"></div>
+
+<!-- CARDS -->
+<div id="cards">
+  <div id="empty">⬡ Aucune idée ici.<br>Clique sur + IDÉE pour commencer !</div>
+</div>
+
+<!-- IDEA MODAL -->
+<div id="overlay" onclick="overlayClick(event)">
+  <div id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">✦ NOUVELLE IDÉE</div>
+    <div class="field">
+      <label>Titre *</label>
+      <input id="f-title" type="text" placeholder="Nom de l'idée..." />
+    </div>
+    <div class="field field-row">
+      <div>
+        <label>Script</label>
+        <select id="f-script"></select>
+      </div>
+      <div>
+        <label>Statut</label>
+        <select id="f-status">
+          <option value="idea">💡 Idée</option>
+          <option value="wip">🔧 En cours</option>
+          <option value="done">✅ Fait</option>
+          <option value="trash">🗑 Poubelle</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Description / Notes</label>
+      <textarea id="f-desc" placeholder="Détails, inspiration, liens..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-save" onclick="saveIdea()">SAUVEGARDER</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP MODAL -->
+<div id="setup-overlay" onclick="setupOverlayClick(event)">
+  <div id="setup-modal">
+    <div class="setup-title">⬡ Connexion GitHub Gist</div>
+    <div class="setup-desc">
+      Tes idées seront sauvegardées dans un Gist privé sur ton compte GitHub — accessibles sur tous tes appareils.
+    </div>
+    <div class="setup-step">1. Va sur <span>github.com</span> → Settings → Developer settings</div>
+    <div class="setup-step">2. Personal access tokens → Tokens (classic) → Generate new token</div>
+    <div class="setup-step">3. Coche uniquement <span>gist</span> → Génère → Copie le token</div>
+    <div class="token-input-wrap">
+      <input id="token-input" type="password" placeholder="Colle ton token ici (ghp_...)" autocomplete="off" />
+    </div>
+    <div class="setup-actions">
+      <button class="btn-skip" onclick="closeSetup()">Annuler</button>
+      <button class="btn-connect" onclick="connectGist()">CONNECTER</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const SCRIPTS = ["Tous","HUD","Inventaire","Garage","Police","Médical","Emplois","Immobilier","Admin","UI Général","Autre"];
+const STATUS = {
+  idea:  { label: "💡 Idée",     color: "#39ff84" },
+  wip:   { label: "🔧 En cours", color: "#ffe066" },
+  done:  { label: "✅ Fait",      color: "#b39ddb" },
+  trash: { label: "🗑 Poubelle", color: "#ff5f5f" },
+};
+const GIST_FILENAME = "fivem-ideas.json";
+
+let ideas = JSON.parse(localStorage.getItem("fivem-ideas") || "[]");
+let editId = null;
+let filterScript = "Tous";
+let ghToken = localStorage.getItem("gh-token") || "";
+let gistId = localStorage.getItem("gh-gist-id") || "";
+let syncTimeout = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const fs = document.getElementById("filter-scripts");
+SCRIPTS.forEach(s => {
+  const c = document.createElement("button");
+  c.className = "chip" + (s === "Tous" ? " active" : "");
+  c.textContent = s;
+  c.onclick = () => {
+    filterScript = s;
+    document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
+    c.classList.add("active");
+    render();
+  };
+  fs.appendChild(c);
+});
+
+const fscript = document.getElementById("f-script");
+SCRIPTS.filter(s => s !== "Tous").forEach(s => {
+  const o = document.createElement("option");
+  o.value = s; o.textContent = s;
+  fscript.appendChild(o);
+});
+
+updateSyncLabel();
+if (ghToken) loadFromGist();
+
+// ── GIST SYNC ─────────────────────────────────────────────────────────────────
+function updateSyncLabel() {
+  const lbl = document.getElementById("sync-label");
+  const btn = document.getElementById("btn-sync");
+  if (ghToken && gistId) {
+    lbl.textContent = "synced · GitHub Gist";
+    lbl.style.color = "var(--green)";
+    btn.textContent = "⟳ Sync";
+    btn.onclick = () => { loadFromGist(); };
+  } else if (ghToken) {
+    lbl.textContent = "connexion...";
+    lbl.style.color = "var(--yellow)";
+  } else {
+    lbl.textContent = "local only";
+    lbl.style.color = "";
+    btn.textContent = "⚙ Sync";
+    btn.onclick = openSetup;
+  }
+}
+
+function setSyncBar(state, msg) {
+  const bar = document.getElementById("sync-bar");
+  bar.className = "sync-bar show " + state;
+  bar.innerHTML = (state === "syncing" ? "⟳ " : state === "ok" ? "✓ " : "✕ ") + msg;
+  if (state !== "syncing") setTimeout(() => bar.className = "sync-bar", 3000);
+}
+
+async function loadFromGist() {
+  if (!ghToken) return;
+  setSyncBar("syncing", "Chargement depuis GitHub...");
+  document.getElementById("btn-sync").className = "syncing";
+  try {
+    let data;
+    if (gistId) {
+      const r = await fetch(`https://api.github.com/gists/${gistId}`, {
+        headers: { Authorization: `token ${ghToken}`, Accept: "application/vnd.github.v3+json" }
+      });
+      if (!r.ok) throw new Error("Gist introuvable");
+      const g = await r.json();
+      data = JSON.parse(g.files[GIST_FILENAME]?.content || "[]");
+    } else {
+      // Cherche un gist existant
+      const r = await fetch("https://api.github.com/gists", {
+        headers: { Authorization: `token ${ghToken}`, Accept: "application/vnd.github.v3+json" }
+      });
+      const gists = await r.json();
+      const found = gists.find(g => g.files[GIST_FILENAME]);
+      if (found) {
+        gistId = found.id;
+        localStorage.setItem("gh-gist-id", gistId);
+        const r2 = await fetch(`https://api.github.com/gists/${gistId}`, {
+          headers: { Authorization: `token ${ghToken}` }
+        });
+        const g2 = await r2.json();
+        data = JSON.parse(g2.files[GIST_FILENAME]?.content || "[]");
+      } else {
+        // Crée le gist
+        const r3 = await fetch("https://api.github.com/gists", {
+          method: "POST",
+          headers: { Authorization: `token ${ghToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ description: "FiveM Ideas Board", public: false, files: { [GIST_FILENAME]: { content: JSON.stringify(ideas) } } })
+        });
+        const g3 = await r3.json();
+        gistId = g3.id;
+        localStorage.setItem("gh-gist-id", gistId);
+        data = ideas;
+      }
+    }
+    ideas = data;
+    localStorage.setItem("fivem-ideas", JSON.stringify(ideas));
+    render();
+    setSyncBar("ok", "Synchronisé !");
+    document.getElementById("btn-sync").className = "ok";
+    updateSyncLabel();
+  } catch(e) {
+    setSyncBar("err", "Erreur : " + e.message);
+    document.getElementById("btn-sync").className = "err";
+  }
+}
+
+async function pushToGist() {
+  if (!ghToken || !gistId) return;
+  try {
+    await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: "PATCH",
+      headers: { Authorization: `token ${ghToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(ideas) } } })
+    });
+    setSyncBar("ok", "Sauvegardé sur GitHub !");
+  } catch(e) {
+    setSyncBar("err", "Erreur sync : " + e.message);
+  }
+}
+
+function schedulePush() {
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(pushToGist, 1500);
+}
+
+// ── SETUP MODAL ───────────────────────────────────────────────────────────────
+function openSetup() {
+  document.getElementById("token-input").value = "";
+  document.getElementById("setup-overlay").classList.add("open");
+}
+function closeSetup() { document.getElementById("setup-overlay").classList.remove("open"); }
+function setupOverlayClick(e) { if (e.target === document.getElementById("setup-overlay")) closeSetup(); }
+
+async function connectGist() {
+  const token = document.getElementById("token-input").value.trim();
+  if (!token) { toast("⚠ Token requis !"); return; }
+  ghToken = token;
+  localStorage.setItem("gh-token", token);
+  gistId = "";
+  localStorage.removeItem("gh-gist-id");
+  closeSetup();
+  updateSyncLabel();
+  await loadFromGist();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const list = ideas.filter(i => {
+    if (filterScript !== "Tous" && i.script !== filterScript) return false;
+    if (q && !i.title.toLowerCase().includes(q) && !(i.desc||"").toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const statsEl = document.getElementById("stats");
+  const counts = {};
+  Object.keys(STATUS).forEach(k => counts[k] = ideas.filter(i => i.status === k).length);
+  statsEl.innerHTML = `
+    <div class="stat-pill"><div class="val">${ideas.length}</div><div class="lbl">Total</div></div>
+    <div class="stat-pill"><div class="val" style="color:#39ff84">${counts.idea}</div><div class="lbl">Idées</div></div>
+    <div class="stat-pill"><div class="val" style="color:#ffe066">${counts.wip}</div><div class="lbl">En cours</div></div>
+    <div class="stat-pill"><div class="val" style="color:#b39ddb">${counts.done}</div><div class="lbl">Faites</div></div>
+    <div class="stat-pill"><div class="val" style="color:#ff5f5f">${counts.trash}</div><div class="lbl">Poubelle</div></div>
+  `;
+
+  const container = document.getElementById("cards");
+  container.querySelectorAll(".card").forEach(c => c.remove());
+  const empty = document.getElementById("empty");
+
+  if (list.length === 0) {
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    list.forEach(idea => {
+      const st = STATUS[idea.status];
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.setProperty("--card-color", st.color);
+      card.innerHTML = `
+        <div class="card-head">
+          <div class="card-title">${escHtml(idea.title)}</div>
+          <button class="status-badge" style="color:${st.color};border-color:${st.color}40;background:${st.color}15" onclick="cycleStatus('${idea.id}')">${st.label}</button>
+        </div>
+        ${idea.desc ? `<div class="card-desc">${escHtml(idea.desc)}</div>` : ""}
+        <div class="card-foot">
+          <span class="script-tag">${escHtml(idea.script)}</span>
+          <div class="card-actions">
+            <span class="card-date">${idea.date}</span>
+            <button class="icon-btn" onclick="editIdea('${idea.id}')">✏️</button>
+            <button class="icon-btn del" onclick="deleteIdea('${idea.id}')">✕</button>
+          </div>
+        </div>`;
+      container.appendChild(card);
+    });
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function escHtml(s) { return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function saveLocal() {
+  localStorage.setItem("fivem-ideas", JSON.stringify(ideas));
+  schedulePush();
+}
+
+function openModal(idea = null) {
+  editId = idea ? idea.id : null;
+  document.getElementById("modal-title").textContent = idea ? "✏ MODIFIER L'IDÉE" : "✦ NOUVELLE IDÉE";
+  document.getElementById("f-title").value = idea ? idea.title : "";
+  document.getElementById("f-desc").value = idea ? (idea.desc||"") : "";
+  document.getElementById("f-script").value = idea ? idea.script : "HUD";
+  document.getElementById("f-status").value = idea ? idea.status : "idea";
+  document.getElementById("overlay").classList.add("open");
+  setTimeout(() => document.getElementById("f-title").focus(), 300);
+}
+function closeModal() { document.getElementById("overlay").classList.remove("open"); editId = null; }
+function overlayClick(e) { if (e.target === document.getElementById("overlay")) closeModal(); }
+
+function saveIdea() {
+  const title = document.getElementById("f-title").value.trim();
+  if (!title) { toast("⚠ Titre requis !"); return; }
+  const data = { title, desc: document.getElementById("f-desc").value.trim(), script: document.getElementById("f-script").value, status: document.getElementById("f-status").value, date: new Date().toLocaleDateString("fr-FR") };
+  if (editId) {
+    ideas = ideas.map(i => i.id === editId ? {...i,...data} : i);
+    toast("✅ Modifiée !");
+  } else {
+    ideas.unshift({ id: Date.now().toString(), ...data });
+    toast("✦ Ajoutée !");
+  }
+  saveLocal(); closeModal(); render();
+}
+
+function cycleStatus(id) {
+  const keys = Object.keys(STATUS);
+  ideas = ideas.map(i => { if (i.id !== id) return i; return {...i, status: keys[(keys.indexOf(i.status)+1)%keys.length]}; });
+  saveLocal(); render();
+}
+function editIdea(id) { const idea = ideas.find(i => i.id === id); if (idea) openModal(idea); }
+function deleteIdea(id) { if (!confirm("Supprimer ?")) return; ideas = ideas.filter(i => i.id !== id); saveLocal(); render(); toast("🗑 Supprimée"); }
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+// PWA Service Worker
+if ("serviceWorker" in navigator) {
+  const sw = `const C="fivem-v2";self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>c.addAll(["/","/index.html"]))));self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+  const blob = new Blob([sw], {type:"application/javascript"});
+  navigator.serviceWorker.register(URL.createObjectURL(blob));
+}
+
+render();
+</script>
+</body>
+</html>
